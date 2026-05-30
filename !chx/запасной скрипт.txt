@@ -1,0 +1,71 @@
+CREATE DATABASE ShoeStore;
+GO
+
+USE ShoeStore;
+GO
+
+CREATE TABLE Roles (
+    RoleID INT PRIMARY KEY IDENTITY(1,1),
+    RoleName NVARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY IDENTITY(1,1),
+    FullName NVARCHAR(100) NOT NULL,
+    Login NVARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    RoleID INT NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
+);
+
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY IDENTITY(1,1),
+    CategoryName NVARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE Manufacturers (
+    ManufacturerID INT PRIMARY KEY IDENTITY(1,1),
+    ManufacturerName NVARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE Suppliers (
+    SupplierID INT PRIMARY KEY IDENTITY(1,1),
+    SupplierName NVARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY IDENTITY(1,1),
+    ProductName NVARCHAR(200) NOT NULL,
+    CategoryID INT NOT NULL,
+    ManufacturerID INT NOT NULL,
+    SupplierID INT NOT NULL,
+    Description NVARCHAR(MAX),
+    Price DECIMAL(10,2) NOT NULL CHECK (Price >= 0),
+    QuantityInStock INT NOT NULL CHECK (QuantityInStock >= 0),
+    DiscountPercent DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (DiscountPercent BETWEEN 0 AND 100),
+    ImagePath NVARCHAR(500) NULL,
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
+    FOREIGN KEY (ManufacturerID) REFERENCES Manufacturers(ManufacturerID),
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY IDENTITY(1,1),
+    OrderStatus NVARCHAR(50) NOT NULL,
+    OrderDate DATETIME NOT NULL DEFAULT GETDATE(),
+    PickupDate DATETIME NULL,
+    PickupAddress NVARCHAR(200) NOT NULL,
+    UserID INT NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+CREATE TABLE OrderItems (
+    OrderItemID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    UnitPrice DECIMAL(10,2) NOT NULL CHECK (UnitPrice >= 0),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
